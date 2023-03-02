@@ -5,8 +5,10 @@ import { mapOfEventToEvents, mapOfEventToEvent} from '../lib/events.js';
 export const router = express.Router();
 
 export async function index(req: Request, res: Response, next: NextFunction) {
-  const eventsResult = await query('SELECT * FROM events');
-  const events =mapOfEventToEvents(eventsResult);
+  console.log("tjekk");
+  const eventsResult = await query('SELECT * FROM departments');
+  const events = mapOfEventToEvents(eventsResult);
+  console.log("tjekk");
   res.json({events});
   next();
 }

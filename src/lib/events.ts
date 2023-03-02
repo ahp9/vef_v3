@@ -1,41 +1,32 @@
 import { QueryResult } from "pg";
 
 
-export type Event = {
+export type departments = {
     id: number;
-    name: string;
-    slug: string;
-    location?: string;
-    url?: string;
-    description?: string;
-    created: Date;
-    updated: Date;
+    title: string;
+    description: string;
 }
 
-export function eventMapper(input: unknown| null,): Event | null{
-    const potentialEvent = input as Partial<Event|null>;
+export function eventMapper(input: unknown| null,): departments | null{
+    const potentialEvent = input as Partial<departments|null>;
     
     if(!potentialEvent || 
-        !potentialEvent.id || 
-        !potentialEvent.name || 
-        !potentialEvent.slug ||
-        !potentialEvent.created ||
-        !potentialEvent.updated){
+        !potentialEvent.id|| 
+        !potentialEvent.title || 
+        !potentialEvent.description){
         return null;
     }
 
-    const event: Event = {
+    const departments: departments = {
         id: potentialEvent.id,
-        name:potentialEvent.name,
-        slug: potentialEvent.slug,
-        created: new Date(potentialEvent.created),
-        updated: new Date(potentialEvent.updated),
+        title:potentialEvent.title,
+        description: potentialEvent.description,
     }
 
-    return event;
+    return departments;
 }
 
-export function mapOfEventToEvent(input: QueryResult<any> |null, ): Event | null {
+export function mapOfEventToEvent(input: QueryResult<any> |null, ): departments | null {
     if(!input){
         return null;
     }
@@ -45,11 +36,11 @@ export function mapOfEventToEvent(input: QueryResult<any> |null, ): Event | null
 
 }
 
-export function mapOfEventToEvents(input: QueryResult<any>| null) : Array<Event>{
+export function mapOfEventToEvents(input: QueryResult<any>| null) : Array<departments>{
    if(!input){
     return[]
    }
 
    const mappedEvents = input?.rows.map(eventMapper);
-   return mappedEvents.filter((i): i is Event => Boolean(i));
+   return mappedEvents.filter((i): i is departments => Boolean(i));
 }
