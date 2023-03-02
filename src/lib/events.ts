@@ -7,7 +7,7 @@ export type departments = {
     description: string;
 }
 
-export function eventMapper(input: unknown| null,): departments | null{
+export function departmentMapper(input: unknown| null,): departments | null{
     const potentialEvent = input as Partial<departments|null>;
     
     if(!potentialEvent || 
@@ -26,21 +26,19 @@ export function eventMapper(input: unknown| null,): departments | null{
     return departments;
 }
 
-export function mapOfEventToEvent(input: QueryResult<any> |null, ): departments | null {
+export function mapOfDepartmentToDepartment(input: QueryResult<any> |null, ): departments | null {
     if(!input){
         return null;
     }
 
-    return eventMapper(!input.rows);
-
-
+    return departmentMapper(!input.rows);
 }
 
-export function mapOfEventToEvents(input: QueryResult<any>| null) : Array<departments>{
+export function mapOfDepartmentsToDepartments(input: QueryResult<any>| null) : Array<departments>{
    if(!input){
     return[]
    }
 
-   const mappedEvents = input?.rows.map(eventMapper);
+   const mappedEvents = input?.rows.map(departmentMapper);
    return mappedEvents.filter((i): i is departments => Boolean(i));
 }
