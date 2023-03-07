@@ -41,7 +41,8 @@ export async function query(q: string, values: Array<QueryInput> = []) {
     console.error('unable to get client from pool', e);
     return null;
   }
-
+  console.log(q);
+  console.log(values);
   try {
     const result = await client.query(q, values);
     return result;
@@ -57,10 +58,12 @@ export async function query(q: string, values: Array<QueryInput> = []) {
 export async function insertDepartment(department: Omit<departments, 'id'>)
 : Promise<departments | null> {
   const {title, slug, description} = department;
+  console.log([title, slug, description]);
   const result = await query(
-    'INSERT INTO department(title, slug, description) VALUES ($1, $2, $3) RETURNING id, title, slug, description, created, updated, links',
+    'INSERT INTO departments(title, slug, description) VALUES ($1, $2, $3) RETURNING id, title, slug, description, created, updated',
     [title, slug, description]);
 
+  console.log(result); 
   const mapped = departmentMapper(result?.rows[0]);
   return mapped;
 }

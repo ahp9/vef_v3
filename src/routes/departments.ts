@@ -72,10 +72,10 @@ export async function getDepartment(req: Request, res: Response, next: NextFunct
 }
 
 export async function createDepartmentHandler(req: Request, res: Response, next: NextFunction){
-    console.log(req);
     const { title, description} = req.body;
     console.log(title);
     const slug = slugify(title, "");
+    console.log(slug);
     const departmentToCreate: Omit<departments, 'id'> = {
         title, 
         slug,
@@ -111,6 +111,8 @@ export const createDepartment = {
 
 
 export async function updateDepartment(req: Request, res: Response, next: NextFunction){
+    console.log(req.body);
+    console.log(req.params)
     return next();
 }
 
