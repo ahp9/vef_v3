@@ -1,53 +1,47 @@
 import express, { Request, Response, NextFunction} from 'express';
-import {  query } from '../lib/db.js';
-import { mapOfDepartmentsToDepartments, mapOfDepartmentToDepartment} from '../lib/events.js';
+import { createCourse, deleteCourse, getCourse, listCourses, updateCourse } from './courses.js';
+import { createDepartment, createDepartmentHandler, deleteDepartment, getDepartment, listDepartments, updateDepartment } from './departments.js';
 
 export const router = express.Router();
 
-export async function index(req: Request, res: Response, next: NextFunction) {
-  const eventsResult = await query('SELECT * FROM departments');
-  const departments = mapOfDepartmentsToDepartments(eventsResult);
-  res.json({departments});
-  next();
-}
-
-
-export async function department(req: Request, res: Response, next: NextFunction){
-  const {  slug } = req.params;
-  const departmentsResult = await query('SELECT * FROM events WHERE id = $1', [slug]);
-  
-  const department = mapOfDepartmentToDepartment(departmentsResult);
-  if(!department){
-    return next();
-  }
-  
-  res.json({department});
-  next();
-}
-
-async function patchEvent(){
-
-}
-
-
-async function createdEvent(req: Request, res: Response, next: NextFunction){
-  const { title, description} = req.body;
-
-  res.json({title, description});
-}
-
-
-async function deleteEvent(){
-
+export async function index(req: Request, res: Response){
+  return res.json([
+    {
+      href:'/departments',
+      methods:['GET', 'POST'],
+    },
+    {
+      href: '/departments/:slug',
+      methods: ['GET, PATCH, DELETE'],
+    },
+    {
+      href: '/departments/:slug/courses',
+      methods: ['GET', 'POST']
+    },
+    {
+      href: '/departments/:slug/courses/:couseId',
+      methods: ['GET', 'PATCH', 'DELETE']
+    }
+  ])
 }
 
 router.get('/', index);
-router.get('/:slug', department);
 
-router.post('/', createdEvent);
 
-router.patch('/:slug', patchEvent)
-router.delete('/:slug', deleteEvent);
+router.get('/departments', listDepartments);
+router.get('/departments/:slug', getDepartment);
+router.post('/departments', createDepartmentHandler);
+router.patch('/departments/:slug', updateDepartment);
+router.delete('/departments/:slug', deleteDepartment);
+
+
+
+router.get('/departments/:slug/courses', listCourses);
+router.get('/departments/:slug/courses/:courseID', getCourse);
+router.post('/departments/:slug/courses', createCourse);
+router.patch('/departments/:slug/:courseID', updateCourse);
+router.delete('/departments/:slug/:courseID', deleteCourse);
+
 
 
 

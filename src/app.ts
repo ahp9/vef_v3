@@ -16,7 +16,6 @@ app.listen(port, () => {
 });
 
 function notFoundHandler(err: Error, req: Request, res: Response, next: NextFunction){
-  console.warn('Not found', req.originalUrl);
   res.status(404).json({error: 'Not found'});
 }
 
