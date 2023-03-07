@@ -41,10 +41,9 @@ export async function query(q: string, values: Array<QueryInput> = []) {
     console.error('unable to get client from pool', e);
     return null;
   }
-  
+
   try {
     const result = await client.query(q, values);
-    console.log(result);
     return result;
   } catch (e) {
     
@@ -55,7 +54,7 @@ export async function query(q: string, values: Array<QueryInput> = []) {
 }
 
 
-export async function insertDepartment(department: Omit<departments, 'id'> , silent: false)
+export async function insertDepartment(department: Omit<departments, 'id'>)
 : Promise<departments | null> {
   const {title, slug, description} = department;
   const result = await query(

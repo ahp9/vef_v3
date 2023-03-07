@@ -2,7 +2,6 @@ import { Request, Response, NextFunction} from 'express';
 import {  insertDepartment, query } from '../lib/db.js';
 import { QueryResult } from "pg";
 import { slugify } from '../lib/slugify.js';
-import { courses } from './courses.js';
 
 
 export type departments = {
@@ -73,6 +72,7 @@ export async function getDepartment(req: Request, res: Response, next: NextFunct
 }
 
 export async function createDepartmentHandler(req: Request, res: Response, next: NextFunction){
+    console.log(req.body);
     const { title, description} = req.body;
     const slug = slugify(title, "");
     const departmentToCreate: Omit<departments, 'id'> = {
@@ -82,7 +82,9 @@ export async function createDepartmentHandler(req: Request, res: Response, next:
         //courses: []
     }
 
-    const createdDepartment = await insertDepartment(departmentToCreate, false);
+    console.log(departmentToCreate);
+
+    const createdDepartment = await insertDepartment(departmentToCreate);
 
     if(!createdDepartment){
         return next(new Error('unable to create department'));
