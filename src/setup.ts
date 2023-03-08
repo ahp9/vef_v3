@@ -1,14 +1,11 @@
 import { readFile } from 'fs/promises';
-import { createSchema, dropSchema, end, insertDepartment, query } from './lib/db.js';
+import { createSchema, dropSchema, end, insertCourse, insertDepartment, query } from './lib/db.js';
 import { departments } from './routes/departments.js';
-import { direxists, readFilesFromDir } from "./lib/file.js";
 import { join } from "path";
 import { parseCsv } from './lib/parse.js';
 
 const Data_dir = "./data/";
 const Output_dir = "./dist";
-let response = await readFile("./data/index.json");
-let parsedJson = JSON.parse(response);
 
 
 async function setup() {
@@ -48,10 +45,9 @@ async function setup() {
       title: i.title,
       slug: i.slug,
       description: i.description,
-      courses: []
     }
 
-    const insertDept = await insertDepartment(department, false);
+    const insertDept = await insertDepartment(department);
 
     if(!insertDept) {
       console.error('unable to insert department', i);
@@ -62,7 +58,7 @@ async function setup() {
     let invalidInserts = 0;
 
     for(const course of courses){
-      const id = await insertCourse(course, insertDept.id, true);
+      const id = await insertCourse(course, insertDept.id);
       if(id){
         validInsert++;
       } else {
@@ -75,6 +71,6 @@ async function setup() {
   await end();
 }
 
-create().catch((err: Error) => {
+create().catch((err) => {
   console.error('Error creating running setup', err);
 });

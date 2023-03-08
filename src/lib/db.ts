@@ -79,7 +79,7 @@ export async function insertCourse(course: Omit<courses, 'departments'>, id:numb
     }  = course;
     const values = [number, title, units, semester, level, url, id];
     const result = await query(
-      'INSERT INTO courses(number, title, units, semester, level, url, departments) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING number, title, units, semester, level, url, departments',
+      'INSERT INTO courses(number, title, units, semester, level, url, departments) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING number, title, units, semester, level, url, departments, created, updated',
       values);
   
     const mapped = courseMapper(result?.rows[0]);
