@@ -39,8 +39,8 @@ router.delete('/departments/:slug', deleteDepartment);
 router.get('/departments/:slug/courses', listCourses);
 router.get('/departments/:slug/courses/:courseID', getCourse);
 router.post('/departments/:slug/courses', createCourse);
-router.patch('/departments/:slug/:courseID', updateCourse);
-router.delete('/departments/:slug/:courseID', deleteCourse);
+router.patch('/departments/:slug/courses/:courseID', updateCourse);
+router.delete('/departments/:slug/courses/:courseID', deleteCourse);
 
 
 

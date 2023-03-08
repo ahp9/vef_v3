@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction} from 'express';
-import {  insertDepartment, query } from '../lib/db.js';
+import {  deletedDepartment, insertDepartment, query } from '../lib/db.js';
 import { QueryResult } from "pg";
 import { slugify } from '../lib/slugify.js';
 
@@ -60,7 +60,7 @@ export async function listDepartments(req: Request, res: Response, next: NextFun
 
 
 export async function getDepartment(req: Request, res: Response, next: NextFunction){
-    let {  slug } = req.params;
+    const {  slug } = req.params;
     const departmentsResult = await query('SELECT * FROM departments WHERE slug = $1', [slug]);
     const department = mapOfDepartmentToDepartment(departmentsResult);
     if(!department){
@@ -112,10 +112,20 @@ export const createDepartment = {
 
 export async function updateDepartment(req: Request, res: Response, next: NextFunction){
     console.log(req.body);
-    console.log(req.params)
+    console.log(req.params);
     return next();
 }
 
 export async function deleteDepartment(req: Request, res: Response, next: NextFunction){
+    const {  slug } = req.params;
+    const departmentsResult = await query('SELECT * FROM departments WHERE slug = $1', [slug]);
+    const department = mapOfDepartmentToDepartment(departmentsResult);
+    
+    if(!department){
+      return next();
+    }
+    
+    deletedDepartment(department?.id);
 
+    return next();
 }

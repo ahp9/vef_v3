@@ -1,6 +1,6 @@
 import express, { Request, Response, NextFunction} from 'express';
 import { QueryResult } from 'pg';
-import { query } from '../lib/db.js';
+import { deletedCourse, insertCourse, query } from '../lib/db.js';
 import { getDepartment, mapOfDepartmentToDepartment } from './departments.js';
 
 
@@ -60,13 +60,24 @@ export function mapOfCoursesToCourses(input: QueryResult<any>| null) : Array<cou
    return mappedEvents.filter((i): i is courses => Boolean(i));
 }
 
+async function findwhatDepartment(slug: string, next: NextFunction){
+    const departmentsResult = await query('SELECT * FROM departments WHERE slug = $1', [slug]);
+    const department = mapOfDepartmentToDepartment(departmentsResult);
+
+    if(!department){
+        return next();
+    }
+
+    const coursesResult = await query('SELECT * FROM courses WHERE departments = $1', [department?.id] );
+    return coursesResult;
+}
+
 export async function listCourses(req: Request, res: Response, next: NextFunction) {
     const { slug } = req.params;
 
-
     const departmentsResult = await query('SELECT * FROM departments WHERE slug = $1', [slug]);
-
     const department = mapOfDepartmentToDepartment(departmentsResult);
+
     if(!department){
         return next();
     }
@@ -93,13 +104,78 @@ export async function getCourse(req: Request, res: Response, next: NextFunction)
 }
 
 export async function createCourse(req: Request, res: Response, next: NextFunction){
+    const {slug} = req.params;
+    const { 
+        number,
+        title,
+        units,
+        semester,
+        level,
+        url,
+    } = req.body;
 
+    const departmentsResult = await query('SELECT * FROM departments WHERE slug = $1', [slug]);
+    const department = mapOfDepartmentToDepartment(departmentsResult);
+
+    if(!department){
+        return next();
+    }
+
+    const departmentID = department.id;
+
+    const courseToCreate: Omit<courses, 'departments'>  = {
+        number,
+        title,
+        units,
+        semester,
+        level,
+        url
+    }
+
+    
+    console.log(courseToCreate);
+
+    const createdCourse = await insertCourse(courseToCreate, departmentID);
+
+
+    if(!createdCourse){
+        return next(new Error('unable to create department'));
+    }
+    return res.json(courseMapper(createdCourse));
 }
 
-export async function updateCourse(req: Request, res: Response, next: NextFunction){
+export const createCourseHandler= {
+   // stringValidator({field: 'number', maxLength: 6}),
+    // stringValidator({field: 'description',
+    // valueRequired: false,
+    // maxLength: 1000,
+    // }),
+    // departmentDoesNotExistValitador,
+    // xssSanitizer('title'),
+    // xssSanitizer('description'),
+    // validationCheck,
+    // genericSanitizer('title'),
+    // genericSanitizer('description'),
+    //createDepartmentHandler,
+ };
 
+export async function updateCourse(req: Request, res: Response, next: NextFunction){
+    console.log('test');
+    console.log(req.params);
+    console.log(req.body);
+    return next();
 }
 
 export async function deleteCourse(req: Request, res: Response, next: NextFunction){
+    const {  slug, courseID } = req.params;
+    const courseResult = await query('SELECT * FROM courses WHERE number = $1', [courseID]);
+    const course = mapOfCourseToCourse(courseResult);
+    
+    if(!course){
+      return next();
+    }
+    
+    deletedCourse(course?.number);
 
+    return next();
 }

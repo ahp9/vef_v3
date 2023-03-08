@@ -1,6 +1,7 @@
 import pg from 'pg';
 import { readFile } from 'fs/promises';
 import { departmentMapper, departments } from '../routes/departments.js';
+import { courseMapper, courses } from '../routes/courses.js';
 
 
 const SCHEMA_FILE = './sql/schema.sql';
@@ -41,8 +42,7 @@ export async function query(q: string, values: Array<QueryInput> = []) {
     console.error('unable to get client from pool', e);
     return null;
   }
-  console.log(q);
-  console.log(values);
+
   try {
     const result = await client.query(q, values);
     return result;
@@ -58,14 +58,42 @@ export async function query(q: string, values: Array<QueryInput> = []) {
 export async function insertDepartment(department: Omit<departments, 'id'>)
 : Promise<departments | null> {
   const {title, slug, description} = department;
-  console.log([title, slug, description]);
+
   const result = await query(
     'INSERT INTO departments(title, slug, description) VALUES ($1, $2, $3) RETURNING id, title, slug, description, created, updated',
     [title, slug, description]);
 
-  console.log(result); 
   const mapped = departmentMapper(result?.rows[0]);
   return mapped;
+}
+
+export async function insertCourse(course: Omit<courses, 'departments'>, id:number)
+: Promise<courses| null> {
+    const { 
+      number,
+      title,
+      units,
+      semester,
+      level,
+      url,
+    }  = course;
+    const values = [number, title, units, semester, level, url, id];
+    const result = await query(
+      'INSERT INTO courses(number, title, units, semester, level, url, departments) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING number, title, units, semester, level, url, departments',
+      values);
+  
+    const mapped = courseMapper(result?.rows[0]);
+    return mapped;
+}
+
+export async function deletedDepartment(departmentId: number){
+  const result = await query(
+    'DELETE FROM departments WHERE id = $1', [departmentId]);
+}
+
+export async function  deletedCourse(courseId: string) {
+  const result = await query(
+    'DELETE FROM courses WHERE number = $1', [courseId]);
 }
 
 export async function end() {
