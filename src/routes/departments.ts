@@ -2,7 +2,7 @@ import { Request, Response, NextFunction} from 'express';
 import {  conditionalUpdate, deletedDepartment, insertDepartment, query } from '../lib/db.js';
 import { QueryResult } from "pg";
 import { slugify } from '../lib/slugify.js';
-//import { stringValidator } from '../lib/validation.js';
+import {  departmentDoesNotExistValitador, genericSanitizerT, stringValidator, validationCheck, xssSanitizer } from '../lib/validation.js';
 
 export type departments = {
     id: number;
@@ -83,7 +83,6 @@ export async function createDepartmentHandler(req: Request, res: Response, next:
         title, 
         slug,
         description,
-        //courses: []
     }
 
     const createdDepartment = await insertDepartment(departmentToCreate);
@@ -96,7 +95,6 @@ export async function createDepartmentHandler(req: Request, res: Response, next:
 
 
 export const createDepartment = [
-    /*
     stringValidator({
         field: 'title', maxLength: 64,
         optional: false
@@ -106,19 +104,18 @@ export const createDepartment = [
     maxLength: 1000,
     optional: false
     }),
-    */
-   // departmentDoesNotExistValitador,
-   // xssSanitizer('title'),
-   // xssSanitizer('description'),
-   // validationCheck,
-   // genericSanitizer('title'),
-   // genericSanitizer('description'),
+    departmentDoesNotExistValitador,
+    //xssSanitizer('title'),
+    //xssSanitizer('description'),
+    validationCheck,
+    //genericSanitizerT('title'),
+    //genericSanitizer('description'),
     createDepartmentHandler,
 ];
 
 
 
-export async function updateDepartment(req: Request, res: Response, next: NextFunction){
+export async function updateDepartmentHandler(req: Request, res: Response, next: NextFunction){
     const { slug } = req.params;
     const department = await getDepartmentBySlug(slug);
 
@@ -154,6 +151,26 @@ export async function updateDepartment(req: Request, res: Response, next: NextFu
     return res.json(update.rows[0]);
 }
 
+export const updateDepartment = [
+    stringValidator({
+        field: 'title', maxLength: 64,
+        optional: true
+    }),
+    stringValidator({field: 'description',
+    valueRequired: false,
+    maxLength: 1000,
+    optional: true
+    }),
+    
+    //departmentDoesNotExistValitador,
+     //xssSanitizer('title'),
+    //xssSanitizer('description'),
+    validationCheck,
+    //genericSanitizerT('title'),
+    //genericSanitizer('description'),
+    updateDepartmentHandler,
+];
+
 export async function deleteDepartment(req: Request, res: Response, next: NextFunction){
     const {  slug } = req.params;
     const department = await getDepartmentBySlug(slug);
@@ -162,6 +179,9 @@ export async function deleteDepartment(req: Request, res: Response, next: NextFu
       return next();
     }
 
-    deletedDepartment(department?.id);
+    const deleteResult = deletedDepartment(department?.id);
+    if(!deleteResult){
+        return res.status(500).json({error: 'Villa í query'});
+    }
     return res.status(204).json({error: ''});
 }

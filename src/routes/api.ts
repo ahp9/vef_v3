@@ -30,7 +30,7 @@ router.get('/', index);
 
 router.get('/departments', listDepartments);
 router.get('/departments/:slug', getDepartment);
-router.post('/departments', createDepartmentHandler);
+router.post('/departments', createDepartment);
 router.patch('/departments/:slug', updateDepartment);
 router.delete('/departments/:slug', deleteDepartment);
 

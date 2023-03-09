@@ -113,7 +113,6 @@ export async function conditionalUpdate(
   }
 
   const updates = filteredFileds.map((field, i) => `${field}= $${i+2}`);
-  console.log('updates', updates);
 
   let q;
   if(table === 'departments'){
@@ -124,13 +123,11 @@ export async function conditionalUpdate(
   WHERE number = $1 Returning *`;
   }
 
-  console.log(q);
 
   const queryValues: Array<string|number> = ([id] as Array<string|number>).concat(filteredValues)
-  console.log(queryValues);
 
   const result = await query(q,queryValues);
-  console.log('result', result);
+
 
   return result;
 }
@@ -139,11 +136,13 @@ export async function conditionalUpdate(
 export async function deletedDepartment(departmentId: number){
   const result = await query(
     'DELETE FROM departments WHERE id = $1', [departmentId]);
+    return result;
 }
 
 export async function  deletedCourse(courseId: string) {
   const result = await query(
     'DELETE FROM courses WHERE number = $1', [courseId]);
+  return result;
 }
 
 export async function end() {

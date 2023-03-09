@@ -1,53 +1,11 @@
+import { Request, Response, NextFunction } from 'express';
 import { body, validationResult } from 'express-validator';
-
-export function validationCheck(req: Request, res: Response, next: NextFunction){
-    const validation = validationResult(req);
-    if(!validation.isEmpty()){
-        const errors = validation.array();
-        const notFoundError = errors.find((error) => error.msg === 'not found');
-        const serverError = errors.find((error) => error.msg === 'server error');
-        
-        let status = 400;
-
-        if(serverError){
-            status = 500;
-        } else if (notFoundError){
-            status = 404;
-        }
-
-        return res.status(status).json({errors});
-    }
-
-    return next();
-}
-
-function validationResult(req: Request) {
-    return req.body;
-    throw new Error("Function not implemented.");
-}
+import xss from 'xss';
+import { getDepartmentBySlug } from '../routes/departments.js';
+import { slugify } from './slugify.js';
+import {findCourseByCourseId} from '../routes/courses.js';
 
 
-/*
-export function atLeastOneBodyValueValidator( fields: Array<string>){
-    return body().custom(async (value, {req}) ={
-        const {body : reqBody} = req;
-        let valid = false;
-
-        for(let i = 0; i < field)
-    })
-}
-*/
-
-
-
-type StringValidatorOptions = {
-    field: string;
-    maxLength: number;
-    valueRequired: boolean;
-    optional: boolean;
-}
-
-/*
 export const stringValidator = ({
     field = '',
     valueRequired = true,
@@ -58,14 +16,14 @@ export const stringValidator = ({
       .trim()
       .isString()
       .isLength({
-        min: valueRequired ? 1 : undefined,
+        min: valueRequired ? 1: undefined,
         max: maxLength ? maxLength : undefined,
       })
       .withMessage(
         [
           field,
           valueRequired ? 'required' : '',
-          maxLength ? `max ${maxLength} characters` : '',
+          maxLength ? `${maxLength} characters` : '',
         ]
           .filter((i) => Boolean(i))
           .join(' '),
@@ -74,31 +32,131 @@ export const stringValidator = ({
       return val.optional();
     }
     return val;
-  };
+};
 
-
-/*
-export function stringValidator(item: StringValidatorOptions){
-    const val = body(item.field)
-    .trim()
-    .toString()
-    .isLength({
-        min: item.valueRequired ? 1 : undefined,
-        max: item.maxLength ? item.maxLength : undefined,
+export const numberValidator = ({
+    field = '',
+    optional = false,
+  } = {}) => {
+    const val = body(field)
+    .isInt({
+        min: 0,
     })
-    .withMessage(
-        [
-            item.field,
-            item.valueRequired ? 'required' : '',
-            item.maxLength ? `max ${item.maxLength} characters`: '',
-        ]
+    .withMessage([
+        field ? `Verður að vera stærra en 0`: '',
+    ]
         .filter((i) => Boolean(i))
-        .join(' ')
+        .join(' '),
     );
+    if (optional) {
+        return val.optional();
+    }
 
-    if(item.optional){
-        return val.optional()
-    } 
     return val;
 }
-*/
+
+export const idValidator = ({
+    field = '',
+    valueRequired = true,
+    maxLength = 0,
+    optional = false,
+  } = {}) => {
+    const val = body(field)
+      .trim()
+      .isString()
+      .isLength({
+        min: maxLength ? maxLength : undefined,
+        max: maxLength ? maxLength : undefined,
+      })
+      .withMessage(
+        [
+          field,
+          valueRequired ? 'required' : '',
+          maxLength ? `${maxLength} characters` : '',
+        ]
+          .filter((i) => Boolean(i))
+          .join(' '),
+      );
+    if (optional) {
+      return val.optional();
+    }
+    return val;
+};
+
+export function semesterValidator(req: Request, res: Response, next: NextFunction){
+    const {semester}= req.body
+    if(semester === "Vor" || semester === "Haust" || semester === "Sumar" || semester === "Heilsárs"){
+        return next()
+    };
+
+    return res.status(404).json({ errors: `Ekki löglegt kennslumisseri, Verður að vera 'Vor', 'Sumar', 
+    'Haust' eða 'Heilsárs'`});
+}
+
+export function departmentDoesNotExistValitador(req: Request, res: Response, next: NextFunction){
+    const {title} = req.body;
+    const slug = slugify(title);
+    const department = getDepartmentBySlug(slug);
+
+    if(!department){
+        return next();
+    } 
+
+    return res.status(404).json({ errors: `Nú þegar til ${title}`});
+}
+
+export function courseDoesNotExistValitador(req: Request, res: Response, next: NextFunction){
+    const{number} = req.body;
+    const couse = findCourseByCourseId(number);
+
+    if(!couse){
+        return next();
+    } 
+
+    return res.status(404).json({ errors: `Nú þegar til ${number} námskeið`});
+}
+
+
+export function validationCheck(req: Request, res: Response, next: NextFunction) {
+    const validation = validationResult(req);
+  
+    if (!validation.isEmpty()) {
+        const errors = validation.array();
+        const notFoundError = errors.find(
+            (error: { msg: string; }) => error.msg === 'not found'
+        );
+        const serverError = errors.find(
+            (error: { msg: string; }) => error.msg === 'server error'
+        );
+  
+  
+        let status = 400;
+  
+        if (serverError) {
+            status = 500;
+        } else if (notFoundError) {
+            status = 404;
+        } 
+  
+      return res.status(status).json({ errors: errors });
+    }
+  
+    return next();
+}
+
+
+export function xssSanitizer(field: string) {
+    return [
+      body('name').customSanitizer((v) => xss(v)),
+      body(field).customSanitizer((v) => xss(v)),
+    ];
+}
+
+export function genericSanitizerT(field: string) {
+    return [body('title').trim().escape(), body(field).trim().escape()];
+}
+
+
+
+
+

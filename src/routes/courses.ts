@@ -1,7 +1,8 @@
 import express, { Request, Response, NextFunction} from 'express';
 import { QueryResult } from 'pg';
 import { conditionalUpdate, deletedCourse, insertCourse, query } from '../lib/db.js';
-import { departments, getDepartment, getDepartmentBySlug, mapOfDepartmentToDepartment } from './departments.js';
+import { departments, getDepartmentBySlug } from './departments.js';
+import { courseDoesNotExistValitador, idValidator, numberValidator, semesterValidator, stringValidator, validationCheck } from '../lib/validation.js';
 
 
 export type courses = {
@@ -55,7 +56,7 @@ export function mapOfCoursesToCourses(input: QueryResult<any>| null) : Array<cou
    return mappedEvents.filter((i): i is courses => Boolean(i));
 }
 
-async function findCourseByCourseId(courseId: string){
+export async function findCourseByCourseId(courseId: string){
     const courseResult = await query('SELECT * FROM courses WHERE number = $1', [courseId]);
     const course = mapOfCourseToCourse(courseResult);
 
@@ -92,7 +93,7 @@ export async function getCourse(req: Request, res: Response, next: NextFunction)
     return res.json({course});
 }
 
-export async function createCourse(req: Request, res: Response, next: NextFunction){
+export async function createCourseHandler(req: Request, res: Response, next: NextFunction){
     const {slug} = req.params;
     const { 
         number,
@@ -130,22 +131,24 @@ export async function createCourse(req: Request, res: Response, next: NextFuncti
     return res.json(courseMapper(createdCourse));
 }
 
-export const createCourseHandler= {
-   // stringValidator({field: 'number', maxLength: 6}),
-    // stringValidator({field: 'description',
-    // valueRequired: false,
-    // maxLength: 1000,
-    // }),
-    // departmentDoesNotExistValitador,
+export const createCourse= [
+    idValidator({field: 'number', maxLength: 7}),
+    stringValidator({field: 'title',
+    valueRequired: false,
+    maxLength: 128,
+    }),
+    semesterValidator,
+    numberValidator({field: 'units', optional: false}),
+    courseDoesNotExistValitador,
     // xssSanitizer('title'),
     // xssSanitizer('description'),
-    // validationCheck,
+    validationCheck,
     // genericSanitizer('title'),
     // genericSanitizer('description'),
-    //createDepartmentHandler,
-};
+    createCourseHandler,
+];
 
-export async function updateCourse(req: Request, res: Response, next: NextFunction){
+export async function updateCourseHandler(req: Request, res: Response, next: NextFunction){
     const {slug, courseID} = req.params;
     const course = await findCourseByCourseId(courseID);
     const department = await getDepartmentBySlug(slug);
@@ -174,7 +177,6 @@ export async function updateCourse(req: Request, res: Response, next: NextFuncti
         typeof units === 'number' && units ? units : null,
     ];
 
-    console.log(values);
     const update =  await conditionalUpdate(
         'courses',
         courseID,
@@ -182,40 +184,29 @@ export async function updateCourse(req: Request, res: Response, next: NextFuncti
         values
     );
 
-    console.log(update);
 
     if(!update){
         return next(new Error('unable to update department'));
     }
     return res.json(update.rows[0]);
-
-    /*
-
-    const fields = [
-        typeof title === 'string' && title ? 'title' : null,
-        typeof title === 'string' && title ? 'slug' : null,
-        typeof description === 'string' && description ? 'description' : null,
-    ];
-
-    const values = [
-        typeof title === 'string' && title ? title : null,
-        typeof title === 'string' && title ? slugify(title) : null,
-        typeof description === 'string' && description ? description : null,
-    ];
-
-    const update =  await conditionalUpdate(
-        'departments',
-        department.id,
-        fields,
-        values
-    );
-
-    if(!update){
-        return next(new Error('unable to update department'));
-    }
-    return res.json(update.rows[0]);
-    */
 }
+
+export const updateCourse= [
+    stringValidator({field: 'number', maxLength: 6}),
+    stringValidator({field: 'title',
+    valueRequired: false,
+    maxLength: 128,
+    }),
+    semesterValidator,
+    numberValidator({field: 'units', optional: false}),
+    // departmentDoesNotExistValitador,
+    // xssSanitizer('title'),
+    // xssSanitizer('description'),
+    validationCheck,
+    // genericSanitizer('title'),
+    // genericSanitizer('description'),
+    updateCourseHandler,
+];
 
 export async function deleteCourse(req: Request, res: Response, next: NextFunction){
     const {  slug, courseID } = req.params;
@@ -225,7 +216,10 @@ export async function deleteCourse(req: Request, res: Response, next: NextFuncti
       return next();
     }
     
-    deletedCourse(course?.number);
+    const deleteResult = deletedCourse(course?.number);
+    if(!deleteResult){
+        return res.status(500).json({error: 'Villa í query'});
+    }
 
     return res.status(204).json({error: ''});
 }
