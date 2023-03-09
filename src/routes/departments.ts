@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction} from 'express';
-import {  deletedDepartment, insertDepartment, query } from '../lib/db.js';
+import {  conditionalUpdate, deletedDepartment, insertDepartment, query } from '../lib/db.js';
 import { QueryResult } from "pg";
 import { slugify } from '../lib/slugify.js';
-
+//import { stringValidator } from '../lib/validation.js';
 
 export type departments = {
     id: number;
     title: string;
-    slug: string | null;
+    slug: string;
     description: string;
    // courses: Array<courses>;
 }
@@ -58,13 +58,18 @@ export async function listDepartments(req: Request, res: Response, next: NextFun
     next();
 }
 
+export async function getDepartmentBySlug(slug: string){
+    const departmentsResult = await query('SELECT * FROM departments WHERE slug = $1', [slug]);
+    const department = mapOfDepartmentToDepartment(departmentsResult);
+    return department;
+}
+
 
 export async function getDepartment(req: Request, res: Response, next: NextFunction){
     const {  slug } = req.params;
-    const departmentsResult = await query('SELECT * FROM departments WHERE slug = $1', [slug]);
-    const department = mapOfDepartmentToDepartment(departmentsResult);
+    const department = await getDepartmentBySlug(slug);
     if(!department){
-      return next();
+      return res.status(404).json({error: 'Not found'});
     }
     
     res.json({department});
@@ -73,9 +78,7 @@ export async function getDepartment(req: Request, res: Response, next: NextFunct
 
 export async function createDepartmentHandler(req: Request, res: Response, next: NextFunction){
     const { title, description} = req.body;
-    console.log(title);
-    const slug = slugify(title, "");
-    console.log(slug);
+    const slug = slugify(title);
     const departmentToCreate: Omit<departments, 'id'> = {
         title, 
         slug,
@@ -83,23 +86,27 @@ export async function createDepartmentHandler(req: Request, res: Response, next:
         //courses: []
     }
 
-    console.log(departmentToCreate);
-
     const createdDepartment = await insertDepartment(departmentToCreate);
 
     if(!createdDepartment){
         return next(new Error('unable to create department'));
     }
-    return res.json(departmentMapper(createDepartment));
+    return res.json(departmentMapper(createdDepartment));
 }
 
- 
-export const createDepartment = {
-   // stringValidator({field: 'title', maxLength: 64}),
-   // stringValidator({field: 'description',
-   // valueRequired: false,
-   // maxLength: 1000,
-   // }),
+
+export const createDepartment = [
+    /*
+    stringValidator({
+        field: 'title', maxLength: 64,
+        optional: false
+    }),
+    stringValidator({field: 'description',
+    valueRequired: false,
+    maxLength: 1000,
+    optional: false
+    }),
+    */
    // departmentDoesNotExistValitador,
    // xssSanitizer('title'),
    // xssSanitizer('description'),
@@ -107,25 +114,54 @@ export const createDepartment = {
    // genericSanitizer('title'),
    // genericSanitizer('description'),
     createDepartmentHandler,
-};
+];
+
 
 
 export async function updateDepartment(req: Request, res: Response, next: NextFunction){
-    console.log(req.body);
-    console.log(req.params);
-    return next();
+    const { slug } = req.params;
+    const department = await getDepartmentBySlug(slug);
+
+    if(!department){
+        return next();
+    }
+
+    const {title, description} = req.body;
+
+    const fields = [
+        typeof title === 'string' && title ? 'title' : null,
+        typeof title === 'string' && title ? 'slug' : null,
+        typeof description === 'string' && description ? 'description' : null,
+    ];
+
+    const values = [
+        typeof title === 'string' && title ? title : null,
+        typeof title === 'string' && title ? slugify(title) : null,
+        typeof description === 'string' && description ? description : null,
+    ];
+
+    const update =  await conditionalUpdate(
+        'departments',
+        department.id,
+        fields,
+        values
+    );
+
+    if(!update){
+        return next(new Error('unable to update department'));
+    }
+
+    return res.json(update.rows[0]);
 }
 
 export async function deleteDepartment(req: Request, res: Response, next: NextFunction){
     const {  slug } = req.params;
-    const departmentsResult = await query('SELECT * FROM departments WHERE slug = $1', [slug]);
-    const department = mapOfDepartmentToDepartment(departmentsResult);
+    const department = await getDepartmentBySlug(slug);
     
     if(!department){
       return next();
     }
-    
-    deletedDepartment(department?.id);
 
-    return next();
+    deletedDepartment(department?.id);
+    return res.status(204).json({error: ''});
 }

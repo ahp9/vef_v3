@@ -1,9 +1,9 @@
 /* eslint-disable no-param-reassign */
 
 // https://gist.github.com/mathewbyrne/1280286 😊
-export function slugify(text: string, separator: string) {
+export function slugify(text: string) {
   if (typeof text !== 'string') {
-    return null;
+    return '';
   }
 
   text = text.toString().toLowerCase().trim();
@@ -54,9 +54,6 @@ export function slugify(text: string, separator: string) {
     .replace(/^-+/, '') // Trim - from start of text
     .replace(/-+$/, ''); // Trim - from end of text
 
-  if (typeof separator !== 'undefined' && separator !== '-') {
-    text = text.replace(/-/g, separator);
-  }
 
   return text;
 }

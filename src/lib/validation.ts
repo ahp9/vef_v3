@@ -1,4 +1,4 @@
-import { body } from 'express-validator';
+import { body, validationResult } from 'express-validator';
 
 export function validationCheck(req: Request, res: Response, next: NextFunction){
     const validation = validationResult(req);
@@ -26,12 +26,79 @@ function validationResult(req: Request) {
     throw new Error("Function not implemented.");
 }
 
-export function stringValidator(field: string, maxLength: number){
-    if(field){
-        console.error(`${field}, must be a string`);
-    } 
-    if (field.length > maxLength){
-        console.error(`${field}, must be no longer than ${maxLength} characters`);
-    }
-    return null;
+
+/*
+export function atLeastOneBodyValueValidator( fields: Array<string>){
+    return body().custom(async (value, {req}) ={
+        const {body : reqBody} = req;
+        let valid = false;
+
+        for(let i = 0; i < field)
+    })
 }
+*/
+
+
+
+type StringValidatorOptions = {
+    field: string;
+    maxLength: number;
+    valueRequired: boolean;
+    optional: boolean;
+}
+
+/*
+export const stringValidator = ({
+    field = '',
+    valueRequired = true,
+    maxLength = 0,
+    optional = false,
+  } = {}) => {
+    const val = body(field)
+      .trim()
+      .isString()
+      .isLength({
+        min: valueRequired ? 1 : undefined,
+        max: maxLength ? maxLength : undefined,
+      })
+      .withMessage(
+        [
+          field,
+          valueRequired ? 'required' : '',
+          maxLength ? `max ${maxLength} characters` : '',
+        ]
+          .filter((i) => Boolean(i))
+          .join(' '),
+      );
+    if (optional) {
+      return val.optional();
+    }
+    return val;
+  };
+
+
+/*
+export function stringValidator(item: StringValidatorOptions){
+    const val = body(item.field)
+    .trim()
+    .toString()
+    .isLength({
+        min: item.valueRequired ? 1 : undefined,
+        max: item.maxLength ? item.maxLength : undefined,
+    })
+    .withMessage(
+        [
+            item.field,
+            item.valueRequired ? 'required' : '',
+            item.maxLength ? `max ${item.maxLength} characters`: '',
+        ]
+        .filter((i) => Boolean(i))
+        .join(' ')
+    );
+
+    if(item.optional){
+        return val.optional()
+    } 
+    return val;
+}
+*/

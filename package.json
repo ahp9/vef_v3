@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "dotenv -e .env -- nodemon ./src/app.ts",
     "start": "node --loader ts-node/esm ./src/app.ts",
-    "setup": "dotenv -e .env node ./src/setup.ts"
+    "setup": "node --loader ts-node/esm ./src/setup.ts"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +16,7 @@
     "dotenv": "^16.0.3",
     "dotenv-cli": "^7.0.0",
     "express": "^4.18.2",
+    "express-validator": "^6.15.0",
     "pg": "^8.9.0",
     "ts-node": "^10.9.1"
   },
