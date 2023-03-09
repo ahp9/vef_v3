@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction} from 'express';
+import express, {Response} from 'express';
 import { router } from './routes/api.js';
 import dotenv from 'dotenv';
 
@@ -16,18 +16,12 @@ app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}/`);
 });
 
-function notFoundHandler(err: Error, req: Request, res: Response, next: NextFunction){
+function notFoundHandler( res: Response){
   res.status(404).json({error: 'Not found'});
 }
 
-function errorHandler(err: Error, req: Request, res: Response, next: NextFunction){
+function errorHandler(err: Error){
   console.error(err);
-
-  /*
-  if (err instanceof SyntaxError && err.status === 400 && 'body' in err){
-    return res.status(400).json({error: 'Invalid json'})
-  }
-  */
 }
 
 app.use(notFoundHandler);

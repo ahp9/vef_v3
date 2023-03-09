@@ -87,16 +87,16 @@ export function semesterValidator(req: Request, res: Response, next: NextFunctio
     const {semester}= req.body
     if(semester === "Vor" || semester === "Haust" || semester === "Sumar" || semester === "Heilsárs"){
         return next()
-    };
+    }
 
     return res.status(404).json({ errors: `Ekki löglegt kennslumisseri, Verður að vera 'Vor', 'Sumar', 
     'Haust' eða 'Heilsárs'`});
 }
 
-export function departmentDoesNotExistValitador(req: Request, res: Response, next: NextFunction){
+export async function departmentDoesNotExistValitador(req: Request, res: Response, next: NextFunction){
     const {title} = req.body;
     const slug = slugify(title);
-    const department = getDepartmentBySlug(slug);
+    const department = await getDepartmentBySlug(slug);
 
     if(!department){
         return next();
@@ -105,10 +105,11 @@ export function departmentDoesNotExistValitador(req: Request, res: Response, nex
     return res.status(404).json({ errors: `Nú þegar til ${title}`});
 }
 
-export function courseDoesNotExistValitador(req: Request, res: Response, next: NextFunction){
+export async function courseDoesNotExistValitador(req: Request, res: Response, next: NextFunction){
     const{number} = req.body;
-    const couse = findCourseByCourseId(number);
+    const couse = await findCourseByCourseId(number);
 
+    console.log(couse);
     if(!couse){
         return next();
     } 

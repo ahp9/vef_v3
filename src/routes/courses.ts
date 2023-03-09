@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction} from 'express';
+import { Request, Response, NextFunction} from 'express';
 import { QueryResult } from 'pg';
 import { conditionalUpdate, deletedCourse, insertCourse, query } from '../lib/db.js';
 import { departments, getDepartmentBySlug } from './departments.js';
@@ -39,7 +39,7 @@ export function courseMapper(input: unknown| null,): courses | null{
     return course;
 }
 
-export function mapOfCourseToCourse(input: QueryResult<any> |null, ): courses | null {
+export function mapOfCourseToCourse(input: QueryResult<courses> |null, ): courses | null {
     if(!input){
         return null;
     }
@@ -47,7 +47,7 @@ export function mapOfCourseToCourse(input: QueryResult<any> |null, ): courses | 
     return courseMapper(input.rows[0]);
 }
 
-export function mapOfCoursesToCourses(input: QueryResult<any>| null) : Array<courses>{
+export function mapOfCoursesToCourses(input: QueryResult<courses>| null) : Array<courses>{
    if(!input){
     return[]
    }
@@ -83,7 +83,7 @@ export async function listCourses(req: Request, res: Response, next: NextFunctio
 }
 
 export async function getCourse(req: Request, res: Response, next: NextFunction){
-    let {  slug , courseID } = req.params;    
+    const { courseID } = req.params;    
     const course = await findCourseByCourseId(courseID);
 
     if(!course){
@@ -160,9 +160,6 @@ export async function updateCourseHandler(req: Request, res: Response, next: Nex
         number,
         title,
         units,
-        semester,
-        level,
-        url,
     } = req.body;
 
     const fields = [
@@ -192,12 +189,12 @@ export async function updateCourseHandler(req: Request, res: Response, next: Nex
 }
 
 export const updateCourse= [
-    stringValidator({field: 'number', maxLength: 6}),
+    stringValidator({field: 'number', maxLength: 6, optional : true}),
     stringValidator({field: 'title',
     valueRequired: false,
     maxLength: 128,
+    optional: true
     }),
-    semesterValidator,
     numberValidator({field: 'units', optional: false}),
     // departmentDoesNotExistValitador,
     // xssSanitizer('title'),
@@ -209,7 +206,7 @@ export const updateCourse= [
 ];
 
 export async function deleteCourse(req: Request, res: Response, next: NextFunction){
-    const {  slug, courseID } = req.params;
+    const {  courseID } = req.params;
     const course =  await findCourseByCourseId(courseID);
     
     if(!course){

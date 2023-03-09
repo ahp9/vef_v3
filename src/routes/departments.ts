@@ -2,14 +2,13 @@ import { Request, Response, NextFunction} from 'express';
 import {  conditionalUpdate, deletedDepartment, insertDepartment, query } from '../lib/db.js';
 import { QueryResult } from "pg";
 import { slugify } from '../lib/slugify.js';
-import {  departmentDoesNotExistValitador, genericSanitizerT, stringValidator, validationCheck, xssSanitizer } from '../lib/validation.js';
+import {  departmentDoesNotExistValitador, stringValidator, validationCheck } from '../lib/validation.js';
 
 export type departments = {
     id: number;
     title: string;
     slug: string;
     description: string;
-   // courses: Array<courses>;
 }
 
 export function departmentMapper(input: unknown| null,): departments | null{
@@ -34,7 +33,7 @@ export function departmentMapper(input: unknown| null,): departments | null{
     return departments;
 }
 
-export function mapOfDepartmentToDepartment(input: QueryResult<any> |null, ): departments | null {
+export function mapOfDepartmentToDepartment(input: QueryResult<departments> |null, ): departments | null {
     if(!input){
         return null;
     }
@@ -42,7 +41,7 @@ export function mapOfDepartmentToDepartment(input: QueryResult<any> |null, ): de
     return departmentMapper(input.rows[0]);
 }
 
-export function mapOfDepartmentsToDepartments(input: QueryResult<any>| null) : Array<departments>{
+export function mapOfDepartmentsToDepartments(input: QueryResult<departments>| null) : Array<departments>{
    if(!input){
     return[]
    }
