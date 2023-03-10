@@ -192,13 +192,13 @@ export async function updateCourseHandler(req: Request, res: Response, next: Nex
 
 export const updateCourse= [
     
-    stringValidator({field: 'number', maxLength: 6, optional : true}),
+    stringValidator({field: 'number', maxLength: 7, optional : true}),
     stringValidator({field: 'title',
     valueRequired: false,
     maxLength: 128,
     optional: true
     }),
-    numberValidator({field: 'units', optional: false}),
+    numberValidator({field: 'units', optional: true}),
     // departmentDoesNotExistValitador,
     // xssSanitizer('title'),
     // xssSanitizer('description'),

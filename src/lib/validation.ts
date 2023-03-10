@@ -85,7 +85,9 @@ export const idValidator = ({
 
 export function semesterValidator(req: Request, res: Response, next: NextFunction){
     const {semester}= req.body
+    console.log(semester);
     if(semester === "Vor" || semester === "Haust" || semester === "Sumar" || semester === "Heilsárs"){
+
         return next()
     }
 
