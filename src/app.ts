@@ -15,14 +15,3 @@ const port = 3000;
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}/`);
 });
-
-function notFoundHandler( res: Response){
-  res.status(404).json({error: 'Not found'});
-}
-
-function errorHandler(err: Error){
-  console.error(err);
-}
-
-app.use(notFoundHandler);
-app.use(errorHandler);

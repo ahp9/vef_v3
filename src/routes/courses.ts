@@ -132,6 +132,7 @@ export async function createCourseHandler(req: Request, res: Response, next: Nex
 }
 
 export const createCourse= [
+    
     idValidator({field: 'number', maxLength: 7}),
     stringValidator({field: 'title',
     valueRequired: false,
@@ -145,6 +146,7 @@ export const createCourse= [
     validationCheck,
     // genericSanitizer('title'),
     // genericSanitizer('description'),
+    
     createCourseHandler,
 ];
 
@@ -189,6 +191,7 @@ export async function updateCourseHandler(req: Request, res: Response, next: Nex
 }
 
 export const updateCourse= [
+    
     stringValidator({field: 'number', maxLength: 6, optional : true}),
     stringValidator({field: 'title',
     valueRequired: false,
@@ -202,6 +205,7 @@ export const updateCourse= [
     validationCheck,
     // genericSanitizer('title'),
     // genericSanitizer('description'),
+    
     updateCourseHandler,
 ];
 
