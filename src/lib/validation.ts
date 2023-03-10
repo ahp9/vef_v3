@@ -84,8 +84,7 @@ export const idValidator = ({
 };
 
 export function semesterValidator(req: Request, res: Response, next: NextFunction){
-    const {semester}= req.body
-    console.log(semester);
+    const {semester}= req.body;
     if(semester === "Vor" || semester === "Haust" || semester === "Sumar" || semester === "Heilsárs"){
 
         return next()
@@ -111,7 +110,6 @@ export async function courseDoesNotExistValitador(req: Request, res: Response, n
     const{number} = req.body;
     const couse = await findCourseByCourseId(number);
 
-    console.log(couse);
     if(!couse){
         return next();
     } 

@@ -47,6 +47,7 @@ export async function query(q: string, values: Array<QueryInput> = []) {
 
   try {
     const result = await client.query(q, values);
+
     return result;
   } catch (e) {
     

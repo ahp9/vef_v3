@@ -17,7 +17,6 @@ export type courses = {
 
 export function courseMapper(input: unknown| null,): courses | null{
     const potentialEvent = input as Partial<courses|null>;
-    console.log(potentialEvent);
     if(!potentialEvent || 
         !potentialEvent.title || 
         !potentialEvent.number ||
@@ -100,9 +99,17 @@ export async function createCourseHandler(req: Request, res: Response, next: Nex
         title,
         units,
         semester,
-        level,
-        url,
     } = req.body;
+
+    let {level, url} = req.body;
+
+    if(!level){
+        level = '';
+    }
+
+    if(!url){
+        url  = '';
+    }
 
     const department = await getDepartmentBySlug(slug);
 
